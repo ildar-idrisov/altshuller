@@ -181,24 +181,27 @@ def extract_python_list(s):
     return None
 
 def get_request(content, prompt, check_function=None, temp=0.5):
-    for i in range(5):
-        completion = openai.ChatCompletion.create(
-            model = GPT_MODEL,
-            messages = [
-                {"role": "system", "content": content},
-                {"role": "user", "content": prompt}
-            ],
-            temperature = temp,
-        )
-        answer = completion.choices[0].message.content
+    try:
+        for i in range(5):
+            completion = openai.ChatCompletion.create(
+                model = GPT_MODEL,
+                messages = [
+                    {"role": "system", "content": content},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature = temp,
+            )
+            answer = completion.choices[0].message.content
 
-        if check_function is not None:
-            answer = check_function(answer)
-            if answer is not None:
+            if check_function is not None:
+                answer = check_function(answer)
+                if answer is not None:
+                    return answer
+            else:
                 return answer
-        else:
-            return answer
-
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    
     print("Error: wrong response")
     raise Exception("Invalid response from ChatGPT")
     return None
@@ -315,7 +318,7 @@ def apply_technical_system_evolution_laws(problem_statement):
 ### 5. Оценка потенциальных решений с точки зрения их функциональности и стоимости
 def perform_functional_cost_analysis(potential_solutions):
     analyzed_solutions = []
-    
+
     for solution in potential_solutions:
         prompt = f"""Evaluate the following proposed solution in terms of its functionality score (0-100) and cost score (0-100): '{solution}'
         - Functionality: 
@@ -332,9 +335,9 @@ def perform_functional_cost_analysis(potential_solutions):
             'cost_score': cost_score,
             'balance_score': functionality_score - cost_score  # A simple measure of balance
         }
-        
+
         analyzed_solutions.append(analyzed_solution)
-    
+
     return analyzed_solutions
 
 ### 6. Генерация и документирование новых идей на основе проведенных анализов и решений
