@@ -198,7 +198,7 @@ def get_request(content, prompt, check_function=None, temp=0.5):
                 return answer
         else:
             return answer
-    
+
     print("Error: wrong response")
     raise Exception("Invalid response from ChatGPT")
     return None
@@ -258,7 +258,7 @@ def apply_standard_solutions(identified_conflicts):
         for principle in principle_descriptions:
             solution = generate_solution_based_on_principle(principle, conflict)
             possible_solutions.append(solution)
-    
+
     for conflict in identified_conflicts['physical_conflicts']:
         # Применение Стандартных Решений ТРИЗ к физическим противоречиям
         standard_solution_descriptions = choose_standard_solution_based_on_conflict(conflict)
@@ -321,7 +321,7 @@ def perform_functional_cost_analysis(potential_solutions):
         - Functionality: 
         - Cost: 
         """
-        
+
         evaluation = get_request(triz_content["functional_cost_analysis"], prompt, extract_scores)
         functionality_score = evaluation[0]
         cost_score = evaluation[1]
