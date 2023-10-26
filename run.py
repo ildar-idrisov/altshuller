@@ -236,12 +236,12 @@ def extract_parameters_and_requirements(problem_statement):
     return res
 
 def identify_technical_conflicts(parameters_and_requirements):
-    prompt=f"Identify technical conflicts in the following parameters and requirements and write them to a Python list: '{parameters_and_requirements}'. Don't write anything else, just python list"
+    prompt=f"Identify technical conflicts in the following parameters and requirements, choose up to best 20 options, and write them to a Python list: '{parameters_and_requirements}'. Don't write anything else, just python list"
     res = get_request(triz_content["conflict_analysis"], prompt, extract_python_list)
     return res
 
 def identify_physical_conflicts(parameters_and_requirements):
-    prompt=f"Identify physical conflicts in the following parameters and requirements and write them to a Python list: '{parameters_and_requirements}'. Don't write anything else, just Python List"
+    prompt=f"Identify physical conflicts in the following parameters and requirements, choose up to best 20 options, and write them to a Python list: '{parameters_and_requirements}'. Don't write anything else, just Python List"
     res = get_request(triz_content["conflict_analysis"], prompt, extract_python_list)
     return res
 
@@ -272,7 +272,7 @@ def choose_principle_based_on_conflict(conflict):
     # Примерный алгоритм выбора принципа на основе анализа конфликта
     principle_description = []
 
-    prompt=f"Based on the analysis of technical conflict: '{conflict}', please suggest the most suitable numbers of TRIZ principles from '{TRIZ_principles}' to address this conflict. Don't write anything else, just Python List"
+    prompt=f"Based on the analysis of technical conflict: '{conflict}', please suggest the most suitable numbers (up to 5) of TRIZ principles from '{TRIZ_principles}' to address this conflict. Don't write anything else, just Python List"
     res = get_request(triz_content["standard_solutions"], prompt, extract_python_list)
     for item in res:
         principle_description.append(TRIZ_principles[int(item)])
@@ -282,7 +282,7 @@ def choose_standard_solution_based_on_conflict(conflict):
     # Примерный алгоритм выбора Стандартного Решения на основе анализа конфликта
     standard_solution_description = []
 
-    prompt=f"Based on the analysis of physical conflict: '{conflict}', please suggest the most suitable numbers of TRIZ standard solutions from '{TRIZ_standard_solutions}' to address this conflict. Don't write anything else, just Python List"
+    prompt=f"Based on the analysis of physical conflict: '{conflict}', please suggest the most suitable numbers (up to 5) of TRIZ standard solutions from '{TRIZ_standard_solutions}' to address this conflict. Don't write anything else, just Python List"
     res = get_request(triz_content["standard_solutions"], prompt, extract_python_list)
     for item in res:
         standard_solution_description.append(TRIZ_standard_solutions[int(item)])
@@ -346,7 +346,7 @@ def generate_ideas(analyses):
     for law_name, analysis_result in evolution_analysis.items():
         # This is a simplified example; you might have more complex analysis logic here
         if 'opportunity' in analysis_result:
-            prompt = f"Based on the analysis of technical system evolution, suggest innovative solutions or improvements for the problem at hand. Here's the analysis summary: '{analysis_result}'. Please provide ideas that align with the observed evolution trends and laws, and suggest how these ideas can address the identified problem. Write all solutions as a Python List"
+            prompt = f"Based on the analysis of technical system evolution, suggest innovative solutions or improvements for the problem at hand. Here's the analysis summary: '{analysis_result}'. Please provide ideas that align with the observed evolution trends and laws, and suggest how these ideas can address the identified problem. Choose up to 20 best options. Write all solutions as a Python List"
             res = get_request(triz_content["idea_generation"], prompt)
             new_ideas.append(res)
 
@@ -358,7 +358,7 @@ def generate_ideas(analyses):
                 [f"- Solution: {analyzed_solution['solution']}, Functionality Score: {analyzed_solution['functionality_score']}, Cost Score: {analyzed_solution['cost_score']}, Balance Score: {analyzed_solution['balance_score']}" 
                 for result in functional_cost_analysis_result]
             )
-            prompt = f"Based on the Functional Cost Analysis, the following solutions were evaluated: '{formatted_analysis_results}'. Given this analysis, what might be some innovative ideas to improve the functionality while maintaining or reducing the cost? Additionally, what other aspects should be considered to create a balanced solution? Write all solutions as a Python List"
+            prompt = f"Based on the Functional Cost Analysis, the following solutions were evaluated: '{formatted_analysis_results}'. Given this analysis, what might be some innovative ideas to improve the functionality while maintaining or reducing the cost? Additionally, what other aspects should be considered to create a balanced solution? Choose up to 20 best options. Write all solutions as a Python List"
             res = get_request(triz_content["idea_generation"], prompt)
             new_ideas.append(new_idea)
 
