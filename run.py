@@ -271,11 +271,11 @@ def apply_standard_solutions(identified_conflicts):
 def choose_principle_based_on_conflict(conflict):
     # Примерный алгоритм выбора принципа на основе анализа конфликта
     principle_description = []
-    
+
     prompt=f"Based on the analysis of technical conflict: '{conflict}', please suggest the most suitable numbers of TRIZ principles from '{TRIZ_principles}' to address this conflict. Don't write anything else, just Python List"
     res = get_request(triz_content["standard_solutions"], prompt, extract_python_list)
     for item in res:
-        principle_description.append(TRIZ_principles[safe_int(item)])
+        principle_description.append(TRIZ_principles[int(item)])
     return principle_description
 
 def choose_standard_solution_based_on_conflict(conflict):
@@ -285,7 +285,7 @@ def choose_standard_solution_based_on_conflict(conflict):
     prompt=f"Based on the analysis of physical conflict: '{conflict}', please suggest the most suitable numbers of TRIZ standard solutions from '{TRIZ_standard_solutions}' to address this conflict. Don't write anything else, just Python List"
     res = get_request(triz_content["standard_solutions"], prompt, extract_python_list)
     for item in res:
-        standard_solution_description.append(TRIZ_standard_solutions[safe_int(item)])
+        standard_solution_description.append(TRIZ_standard_solutions[int(item)])
     return standard_solution_description
 
 def generate_solution_based_on_principle(principle, conflict):
