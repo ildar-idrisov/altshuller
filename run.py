@@ -143,14 +143,14 @@ TRIZ_standard_solutions = {
 }
 
 TRIZ_laws_of_technical_system_evolution = {
-    1: "Law of Completeness of the Parts of the System"
-    2: "Law of 'Energy Conductivity' of the System"
-    3: "Law of Coordination of the Rhythm of Parts of the System"
-    4: "Law of Increasing the Degree of Ideality of the System"
-    5: "Law of Uneven Development of Parts of the System"
-    6: "Law of Transition to a Supersystem"
-    7: "Law of Transition from Macro-level to Micro-level"
-    8: "Law of Increasing the Degree of Substance-Field Interaction"
+    1: "Law of Completeness of the Parts of the System",
+    2: "Law of 'Energy Conductivity' of the System",
+    3: "Law of Coordination of the Rhythm of Parts of the System",
+    4: "Law of Increasing the Degree of Ideality of the System",
+    5: "Law of Uneven Development of Parts of the System",
+    6: "Law of Transition to a Supersystem",
+    7: "Law of Transition from Macro-level to Micro-level",
+    8: "Law of Increasing the Degree of Substance-Field Interaction",
 }
 
 def extract_scores(s):
