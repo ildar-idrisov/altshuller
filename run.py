@@ -377,12 +377,19 @@ def gather_feedback(new_ideas):
 user_input = "На Кипре проблема с поливом растений. Очень много морской воды, но при этом очень мало пресной воды для полива. Додей тоже очень мало. Как можно решить проблемы с поливом растений, чтоб можно было повсеместно иметь газоны и низкой стоимость полива"
 
 problem_statement = define_problem(user_input)
+print("Log: 1")
 conflicts = analyze_conflicts(problem_statement)
+print("Log: 2")
 solutions = apply_standard_solutions(conflicts)
+print("Log: 3")
 evolution_analysis = apply_technical_system_evolution_laws(problem_statement)
+print("Log: 4")
 functional_cost_analysis_result = perform_functional_cost_analysis(solutions)
+print("Log: 5")
 new_ideas = generate_ideas([evolution_analysis, functional_cost_analysis_result])
+print("Log: 6")
 feedback = gather_feedback(new_ideas)
+print("Log: 7")
 for idea in new_ideas:
     print(idea)
     print("===============")
