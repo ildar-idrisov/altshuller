@@ -7,7 +7,12 @@ openai.api_key = OPENAI_API_KEY
 
 GPT_MODEL = "gpt-3.5-turbo-16k" # gpt-3.5-turbo gpt-3.5-turbo-16k gpt-4 gpt-4-32k
 
-triz_content_common = "You are a Certified TRIZ Practitioner, proficient in TRIZ tools such as the Contradiction Matrix, Function Analysis, Root Cause Analysis, and the Ideality Concept. You are familiar with modern software development practices and agile methodologies. You have experience in problem-solving and algorithm development. You possess a visionary outlook towards the future of product development and innovation."
+MAX_NUM_TECH_CONFLICTS = 2
+MAX_NUM_PHIS_CONFLICTS = 2
+MAX_NUM_PRINC = 2
+MAX_NUM_STAND = 2
+
+triz_content_common = "You are a Certified TRIZ Practitioner. You have experience in problem-solving and possess a visionary outlook towards the future of product development and innovation."
 triz_content = {
     "problem_definition": triz_content_common + "You are tasked with gathering and articulating the problem or the area of innovation based on user input.",
     "conflict_analysis": triz_content_common + "You identify technical and physical contradictions within the current scenario based on the defined problem.",
@@ -60,6 +65,89 @@ TRIZ_principles = {
     38: "Strong Oxidants",
     39: "Inert Atmosphere",
     40: "Composite Materials"
+}
+
+TRIZ_principles_IT = {
+    1: "Segmentation",
+        # Breaking down software into microservices or modules for better manageability and scalability.
+    2: "Taking Out",
+        # Isolating or extracting specific functions or components to simplify or optimize the system.
+    3: "Local Quality",
+        # Tailoring solutions to specific parts of the software to address localized issues.
+    4: "Asymmetry",
+        # Introducing asymmetrical solutions or architectures to address unique challenges.
+    5: "Merging",
+        # Combining functionalities or modules to reduce redundancy and improve efficiency.
+    6: "Universality",
+        # Creating universal or generic solutions that can address a range of problems.
+    7: "Nested Doll",
+        # Implementing nested or hierarchical structures to organize and manage software components.
+    8: "Anti-Weight",
+        # Reducing the load or computational burden on specific parts of the system.
+    9: "Preliminary Anti-Action",
+        # Anticipating potential issues and implementing preemptive solutions.
+    10: "Preliminary Action",
+        # Implementing proactive measures to ensure smoother operations or transitions.
+    11: "Beforehand Cushioning",
+        # Building in fail-safes or fallback mechanisms to mitigate risks.
+    12: "Equipotentiality",
+        # Balancing the load or responsibilities among different parts of the system.
+    13: "Inversion",
+        # Reversing processes or logic to discover new solutions or perspectives.
+    14: "Spheroidality",
+        # Optimizing the structure or organization of the software for more rounded or flexible operation.
+    15: "Dynamicity",
+        # Introducing dynamic or adaptive behaviors to respond to changing conditions.
+    16: "Partial or Excessive Action",
+        # Implementing solutions that are scalable or adjustable to the degree of action required.
+    17: "Moving to a New Dimension",
+        # Transitioning to new paradigms or architectures, like moving from monolithic to microservices.
+    18: "Mechanical Vibration",
+        # Implementing monitoring and alerting to detect and respond to system anomalies.
+    19: "Periodic Action",
+        # Scheduling periodic tasks or maintenance activities to ensure system health.
+    20: "Continuity of Useful Action",
+        # Ensuring continuous delivery, integration, and deployment for ongoing value delivery.
+    21: "Skipping",
+        # Bypassing or shortcutting processes to achieve faster results.
+    22: "Blessing in Disguise",
+        # Leveraging failures or unexpected events as learning opportunities.
+    23: "Feedback",
+        # Implementing feedback loops for continuous improvement.
+    24: "Intermediary",
+        # Utilizing intermediary services or APIs to facilitate interactions between components.
+    25: "Self-Service",
+        # Implementing self-service options for users to reduce operational overhead.
+    26: "Copying",
+        # Replicating successful solutions or practices across different parts of the system.
+    27: "Cheap Short-Living",
+        # Utilizing disposable resources or temporary solutions for short-term needs.
+    28: "Replacement of Mechanical System",
+        # Automating manual processes to improve efficiency and consistency.
+    29: "Pneumatics and Hydraulics",
+        # This might not have a direct analogy but could be viewed as streamlining data flow.
+    30: "Flexible Shells and Thin Films",
+        # Implementing flexible interfaces or abstraction layers to accommodate change.
+    31: "Porosity",
+        # Introducing modularity or openness in the system to allow for extensibility.
+    32: "Color Changes",
+        # Utilizing meaningful visual indicators or logging to convey system status.
+    33: "Homogeneity",
+        # Standardizing technologies or practices to reduce complexity.
+    34: "Discarding and Recovering",
+        # Implementing robust backup and recovery solutions.
+    35: "Parameter Changes",
+        # Allowing for configurability to adapt to varying requirements.
+    36: "Phase Transition",
+        # Managing transitions between different states or versions of the software.
+    37: "Thermal Expansion",
+        # This might be analogous to managing system load and ensuring scalability.
+    38: "Strong Oxidants",
+        # Identifying and removing impediments or 'corrosive' practices.
+    39: "Inert Atmosphere",
+        # Maintaining a stable and consistent operational environment.
+    40: "Composite Materials",
+        # Integrating diverse technologies or practices to create a more robust solution.
 }
 
 # Определение Стандартных Решений ТРИЗ
@@ -166,14 +254,14 @@ def extract_scores(s):
     return None
 
 def extract_python_list(s):
-    # Регулярное выражение для поиска Python list в строке
+    # Регулярное выражение для поиска Python List в строке
     pattern = re.compile(r'(\[\s*(?:(?:\d+|"[^"]*"|\'[^\']*\')(?:\s*,\s*(?:\d+|"[^"]*"|\'[^\']*\'))*)?\s*\])')
     match = pattern.search(s)
     if match:
-        # Извлечение и преобразование Python list из строки
+        # Извлечение и преобразование Python List из строки
         python_list_str = match.group(1)
         try:
-            # Преобразование строки в фактический Python list с помощью модуля ast
+            # Преобразование строки в фактический Python List с помощью модуля ast
             python_list = ast.literal_eval(python_list_str)
             return python_list
         except (ValueError, SyntaxError):
@@ -182,7 +270,7 @@ def extract_python_list(s):
 
 def get_request(content, prompt, check_function=None, temp=0.5):
     try:
-        for i in range(5):
+        for i in range(10):
             completion = openai.ChatCompletion.create(
                 model = GPT_MODEL,
                 messages = [
@@ -192,6 +280,7 @@ def get_request(content, prompt, check_function=None, temp=0.5):
                 temperature = temp,
             )
             answer = completion.choices[0].message.content
+            answer = summarize(answer, max_num=5000)
 
             if check_function is not None:
                 answer = check_function(answer)
@@ -200,53 +289,87 @@ def get_request(content, prompt, check_function=None, temp=0.5):
             else:
                 return answer
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error from GPT occurred: {e}")
     
     print("Error: wrong response")
-    raise Exception("Invalid response from ChatGPT")
+    print(prompt)
+    print('===============')
+    #raise Exception("Invalid response from ChatGPT")
     return None
 
 ### 1. Анализ входных данных пользователя и формулирование проблемы
-def define_problem(user_input):
-    prompt=f"Based on the provided description, please define and formulate the problem, identify key parameters, and explore possible solutions: {user_input}"
-    res = get_request(triz_content["problem_definition"], prompt)
+def define_problem_statement(user_input):
+    user_input = summarize(user_input)
+    prompt=f"Based on the provided description, please define and formulate the problem and identify key parameters: {user_input}"
+    res = get_request(triz_content_common, prompt)
+    return res
+
+def extract_problems(problem_statement):
+    problem_statement = summarize(problem_statement)
+    prompt=f"Extract the problem from the following problem statement: {problem_statement}"
+    res = get_request(triz_content_common, prompt)
     return res
 
 ### 2. Идентификация противоречий в проблемном заявлении
 def analyze_conflicts(problem_statement):
     # Сначала разберите проблемное заявление на составные части, чтобы выявить ключевые параметры и требования.
     # Это может включать в себя текстовый анализ, анализ данных или даже консультации с экспертами.
-    parameters_and_requirements = extract_parameters_and_requirements(problem_statement)
+    #parameters_and_requirements = extract_parameters_and_requirements(problem_statement)
 
     # Идентификация технических противоречий:
     # Технические противоречия возникают, когда улучшение одного параметра ведет к ухудшению другого.
-    technical_conflicts = identify_technical_conflicts(parameters_and_requirements)
+    technical_conflicts = identify_technical_conflicts(problem_statement)
 
     # Идентификация физических противоречий:
     # Физические противоречия возникают, когда один и тот же параметр должен иметь противоположные значения.
-    physical_conflicts = identify_physical_conflicts(parameters_and_requirements)
+    physical_conflicts = identify_physical_conflicts(problem_statement)
 
     # Сбор и возврат результатов анализа
     conflicts = {
         'technical_conflicts': technical_conflicts,
         'physical_conflicts': physical_conflicts
     }
+
+    conflicts = add_conflict_description(problem_statement, conflicts)
     return conflicts
 
 def extract_parameters_and_requirements(problem_statement):
+    problem_statement = summarize(problem_statement)
     prompt=f"Extract the parameters and requirements from the following problem statement: {problem_statement}"
-    res = get_request(triz_content["conflict_analysis"], prompt)
+    res = get_request(triz_content_common, prompt)
     return res
 
-def identify_technical_conflicts(parameters_and_requirements):
-    prompt=f"Identify technical conflicts in the following parameters and requirements, choose up to best 20 options, and write them to a Python list: '{parameters_and_requirements}'. Don't write anything else, just python list"
-    res = get_request(triz_content["conflict_analysis"], prompt, extract_python_list)
+def identify_technical_conflicts(problem_statement):
+    problem_statement = summarize(problem_statement)
+    prompt=f"Based on '{problem_statement}', identify technical conflicts, select up to {MAX_NUM_TECH_CONFLICTS} most suitable options, and write them to a Python List. Don't write anything else, just Python List"
+    res = get_request(triz_content_common, prompt, extract_python_list)
     return res
 
-def identify_physical_conflicts(parameters_and_requirements):
-    prompt=f"Identify physical conflicts in the following parameters and requirements, choose up to best 20 options, and write them to a Python list: '{parameters_and_requirements}'. Don't write anything else, just Python List"
-    res = get_request(triz_content["conflict_analysis"], prompt, extract_python_list)
+def identify_physical_conflicts(problem_statement):
+    problem_statement = summarize(problem_statement)
+    prompt=f"Based on '{problem_statement}', identify physical conflicts, select up to {MAX_NUM_PHIS_CONFLICTS} most suitable options, and write them to a Python List. Don't write anything else, just Python List"
+    res = get_request(triz_content_common, prompt, extract_python_list)
     return res
+
+def add_conflict_description(problem_statement, identified_conflicts):
+    technical_conflicts = []
+    physical_conflicts = []
+
+    for conflict in identified_conflicts['technical_conflicts']:
+        prompt=f"Based on '{problem_statement}', write short description to '{conflict}'. Don't write anything more, just text of description"
+        res = get_request(triz_content_common, prompt)
+        technical_conflicts.append(conflict + ": " + res)
+
+    for conflict in identified_conflicts['physical_conflicts']:
+        prompt=f"Based on '{problem_statement}', write short description to '{conflict}'. Don't write anything more, just text of description"
+        res = get_request(triz_content_common, prompt)
+        physical_conflicts.append(conflict + ": " + res)
+  
+    conflicts = {
+        'technical_conflicts': technical_conflicts,
+        'physical_conflicts': physical_conflicts
+    }
+    return conflicts
 
 ### 3. Применение стандартных решений ТРИЗ для разрешения противоречий
 ### https://altshuller.ru/triz/technique1.asp
@@ -275,42 +398,49 @@ def choose_principle_based_on_conflict(conflict):
     # Примерный алгоритм выбора принципа на основе анализа конфликта
     principle_description = []
 
-    prompt=f"Based on the analysis of technical conflict: '{conflict}', please suggest the most suitable numbers (up to 5) of TRIZ principles from '{TRIZ_principles}' to address this conflict. Don't write anything else, just Python List"
-    res = get_request(triz_content["standard_solutions"], prompt, extract_python_list)
+    conflict = summarize(conflict)
+    prompt=f"Based on the analysis of technical conflict: '{conflict}', please suggest the most suitable numbers (up to {MAX_NUM_PRINC}) of TRIZ principles from '{TRIZ_principles}' to address this conflict. Don't write anything else, just Python List"
+    res = get_request(triz_content_common, prompt, extract_python_list)
     for item in res:
         principle_description.append(TRIZ_principles[int(item)])
     return principle_description
+
+def generate_solution_based_on_principle(principle, conflict):
+    # Генерация решения на основе выбранного принципа и конфликта
+    principle = summarize(principle)
+    conflict = summarize(conflict)
+    prompt=f"Given the selected TRIZ principle: '{principle}', and the identified technical conflict: '{conflict}', please generate a solution to resolve the conflict. Provide a detailed explanation of how the principle can be applied to address the issues and achieve a resolution."
+    res = get_request(triz_content_common, prompt)
+    return res
 
 def choose_standard_solution_based_on_conflict(conflict):
     # Примерный алгоритм выбора Стандартного Решения на основе анализа конфликта
     standard_solution_description = []
 
-    prompt=f"Based on the analysis of physical conflict: '{conflict}', please suggest the most suitable numbers (up to 5) of TRIZ standard solutions from '{TRIZ_standard_solutions}' to address this conflict. Don't write anything else, just Python List"
-    res = get_request(triz_content["standard_solutions"], prompt, extract_python_list)
+    conflict = summarize(conflict)
+    prompt=f"Based on the analysis of physical conflict: '{conflict}', please suggest the most suitable numbers (up to {MAX_NUM_STAND}) of TRIZ standard solutions from '{TRIZ_standard_solutions}' to address this conflict. Don't write anything else, just Python List"
+    res = get_request(triz_content_common, prompt, extract_python_list)
     for item in res:
         standard_solution_description.append(TRIZ_standard_solutions[int(item)])
     return standard_solution_description
 
-def generate_solution_based_on_principle(principle, conflict):
-    # Генерация решения на основе выбранного принципа и конфликта
-    prompt=f"Given the selected TRIZ principle: '{principle}', and the identified technical conflict: '{conflict}', please generate a solution to resolve the conflict. Provide a detailed explanation of how the principle can be applied to address the issues and achieve a resolution."
-    res = get_request(triz_content["standard_solutions"], prompt)
-    return res
-
 def generate_solution_based_on_standard_solution(standard_solution, conflict):
     # Генерация решения на основе выбранного Стандартного Решения и конфликта
+    standard_solution = summarize(standard_solution)
+    conflict = summarize(conflict)
     prompt=f"Given the selected TRIZ standard solution: '{standard_solution}', and the identified physical conflict: '{conflict}', please generate a solution to resolve the conflict. Provide a detailed explanation of how the standard solution can be applied to address the issues and achieve a resolution."
-    res = get_request(triz_content["standard_solutions"], prompt)
+    res = get_request(triz_content_common, prompt)
     return res
 
 ### 4. Анализ трендов и законов развития технических систем в области проблемы
 ### https://altshuller.ru/triz/zrts1.asp
 def apply_technical_system_evolution_laws(problem_statement):
     analysis_results = {}
+    problem_statement = summarize(problem_statement)
     for law_number, law_name in TRIZ_laws_of_technical_system_evolution.items():
         # Analyze the problem_statement with respect to the current law.
         prompt=f"Analyze the current state of my system described as follows: '{problem_statement}' based on the law of technical system evolution: {law_name}"
-        res = get_request(triz_content["laws_of_technical_system_evolution"], prompt)
+        res = get_request(triz_content_common, prompt)
         analysis_results[law_name] = res
 
     return analysis_results
@@ -320,12 +450,15 @@ def perform_functional_cost_analysis(potential_solutions):
     analyzed_solutions = []
 
     for solution in potential_solutions:
-        prompt = f"""Evaluate the following proposed solution in terms of its functionality score (0-100) and cost score (0-100): '{solution}'
-        - Functionality: 
-        - Cost: 
+        solution = summarize(solution)
+        prompt = f"""Evaluate the following proposed solution in terms of its Functionality score (0-100) and Cost score (0-100): '{solution}'. Don't write anything more than Functionality, Cost. Write the answer in the form:
+        '- Functionality: estimated value
+        - Cost: estimated value'
         """
 
-        evaluation = get_request(triz_content["functional_cost_analysis"], prompt, extract_scores)
+        evaluation = get_request(triz_content_common, prompt, extract_scores)
+        if (evaluation == None):
+          continue
         functionality_score = evaluation[0]
         cost_score = evaluation[1]
 
@@ -341,7 +474,7 @@ def perform_functional_cost_analysis(potential_solutions):
     return analyzed_solutions
 
 ### 6. Генерация и документирование новых идей на основе проведенных анализов и решений
-def generate_ideas(analyses):
+def generate_ideas(evolution_analysis, functional_cost_analysis_result):
     # Prepare a list to collect new ideas
     new_ideas = []
 
@@ -349,21 +482,23 @@ def generate_ideas(analyses):
     for law_name, analysis_result in evolution_analysis.items():
         # This is a simplified example; you might have more complex analysis logic here
         if 'opportunity' in analysis_result:
-            prompt = f"Based on the analysis of technical system evolution, suggest innovative solutions or improvements for the problem at hand. Here's the analysis summary: '{analysis_result}'. Please provide ideas that align with the observed evolution trends and laws, and suggest how these ideas can address the identified problem. Choose up to 20 best options. Write all solutions as a Python List"
-            res = get_request(triz_content["idea_generation"], prompt)
+            analysis_result = summarize(analysis_result)
+            prompt = f"Based on the technical system evolution analysis, provide one innovative solution or improvement to address the identified problem. Here's the summary of the analysis: '{analysis_result}'. Please ensure that the proposed idea aligns with the observed evolution trends and laws, and elaborate on how this idea can mitigate the identified problem."
+            res = get_request(triz_content_common, prompt)
             new_ideas.append(res)
 
     # Analyze the functional cost analysis results to identify high-potential solutions
     for analyzed_solution in functional_cost_analysis_result:
         # For simplicity, let's consider solutions with a balance score of zero as high-potential
         if analyzed_solution['balance_score'] >= 0:
+            analyzed_solution['solution'] = summarize(analyzed_solution['solution'])
             formatted_analysis_results = '\n'.join(
                 [f"- Solution: {analyzed_solution['solution']}, Functionality Score: {analyzed_solution['functionality_score']}, Cost Score: {analyzed_solution['cost_score']}, Balance Score: {analyzed_solution['balance_score']}" 
                 for result in functional_cost_analysis_result]
             )
-            prompt = f"Based on the Functional Cost Analysis, the following solutions were evaluated: '{formatted_analysis_results}'. Given this analysis, what might be some innovative ideas to improve the functionality while maintaining or reducing the cost? Additionally, what other aspects should be considered to create a balanced solution? Choose up to 20 best options. Write all solutions as a Python List"
-            res = get_request(triz_content["idea_generation"], prompt)
-            new_ideas.append(new_idea)
+            prompt = f"Given the Functional Cost Analysis, the solutions evaluated include: '{formatted_analysis_results}'. In light of this analysis, propose one innovative idea to enhance functionality while either maintaining or lowering the cost. Furthermore, elaborate on any additional factors that should be contemplated to forge a balanced solution."
+            res = get_request(triz_content_common, prompt)
+            new_ideas.append(res)
 
     # Additional idea generation logic can go here...
     # For example, you might identify and resolve contradictions, apply inventive principles, etc.
@@ -371,28 +506,84 @@ def generate_ideas(analyses):
     return new_ideas
 
 ### 7. Разработка механизмов для сбора обратной связи от пользователей или экспертов по предложенным идеям
-def gather_feedback(new_ideas):
-    feedback = ["feedback1", "feedback2"]  # Это простой пример, в реальности может потребоваться сложный процесс сбора обратной связи
-    return feedback
+def gather_feedback(new_ideas, problem_statement):
+    prompt = f"Choose one best idea from the list '{new_ideas}' to solve problem '{problem_statement}'. Only idea"
+    res = get_request('You are professional technical writer', prompt)
+    return res
 
+### 8. Repeating
+def new_problem_statement(problem_statement, topic):
+    prompt = f"Based on '{problem_statement}' and the proposed solution '{topic}', write what technological problem has not yet been solved for the successful implementation of this solution. Write briefly up to 15 words. Only problem"
+    res = get_request('You are professional technical writer', prompt)
+    return res
+
+### 9. Report
+def get_report(feedback):
+    return report
+
+def get_solutions_summary(feedback):
+    summary = []
+    for txt in feedback:
+        res = get_summary(txt, max_num = 100)
+        summary.append(res)
+    return summary
+
+### Utils
+def get_summary(text, max_num = 10000, prompt = None, content = None):
+    if (prompt == None):
+        prompt = f"Given the selected text: '{text}', write a summary in {max_num} words"
+    if (content == None):
+        content = 'You are professional technical writer'
+    res = get_request(content, prompt)
+    return res
+
+def get_token_num(text):
+    word_list = text.split()
+    word_count = len(word_list)
+    return word_count
+
+def summarize(text, max_num=10000):
+    num = get_token_num(text)
+    if (num > max_num):
+        res = get_summary(text, max_num)
+    else:
+        res = text
+    return res
+
+def naming_ideas(summary):
+    prompt = f"Analyze the ideas in the list '{summary}', come up with a name for each idea, and present them as a Python List"
+    res = get_request('You are professional technical writer', prompt, extract_python_list)
+    return res
 
 ### Запуск
-user_input = "На Кипре проблема с поливом растений. Очень много морской воды, но при этом очень мало пресной воды для полива. Додей тоже очень мало. Как можно решить проблемы с поливом растений, чтоб можно было повсеместно иметь газоны и низкой стоимость полива"
+user_input = "We need to come up with an effective way to generate energy that will be many times cheaper and easier to implement than all current methods."
 
-problem_statement = define_problem(user_input)
-print("Log: 1")
-conflicts = analyze_conflicts(problem_statement)
-print("Log: 2", len(conflicts['technical_conflicts']), len(conflicts['physical_conflicts']))
-solutions = apply_standard_solutions(conflicts)
-print("Log: 3", len(solutions))
-evolution_analysis = apply_technical_system_evolution_laws(problem_statement)
-print("Log: 4", len(evolution_analysis))
-functional_cost_analysis_result = perform_functional_cost_analysis(solutions)
-print("Log: 5", len(functional_cost_analysis_result))
-new_ideas = generate_ideas([evolution_analysis, functional_cost_analysis_result])
-print("Log: 6", len(new_ideas))
-feedback = gather_feedback(new_ideas)
-print("Log: 7")
+problem_statement = define_problem_statement(user_input)
+original_problem = extract_problems(problem_statement)
+
+for _ in range(5):
+    print("Log: 1.", problem_statement)
+    conflicts = analyze_conflicts(problem_statement)
+    print("Log: 2.", len(conflicts['technical_conflicts']), len(conflicts['physical_conflicts']))
+    solutions = apply_standard_solutions(conflicts)
+    print("Log: 3.", len(solutions))
+    evolution_analysis = apply_technical_system_evolution_laws(problem_statement)
+    print("Log: 4.", len(evolution_analysis))
+    functional_cost_analysis_result = perform_functional_cost_analysis(solutions)
+    print("Log: 5.", len(functional_cost_analysis_result))
+    new_ideas = generate_ideas(evolution_analysis, functional_cost_analysis_result)
+    print("Log: 6.", len(new_ideas))
+    names = naming_ideas(new_ideas)
+    print(names)
+    print("===============")
+    feedback = gather_feedback(new_ideas, problem_statement)
+    print("Log: 7.")
+    print(feedback)
+    print("===============")
+    new_problem = new_problem_statement(original_problem, feedback)
+    problem_statement = define_problem_statement(original_problem + ' To do this you need to solve the problem:' + new_problem)
+    print("Log: 8.")
+
 for idea in new_ideas:
     print(idea)
     print("===============")
