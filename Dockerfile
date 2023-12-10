@@ -16,8 +16,8 @@ RUN apt install -y --no-install-recommends python3-pip python3-dev nano wget git
 RUN python3 -m pip install --no-cache-dir setuptools
 RUN pip install --upgrade pip
 
-WORKDIR /app
-ADD . /app
-
 RUN pip install openai
 RUN pip install jupyterlab
+
+WORKDIR /app
+ADD . /app
